@@ -175,6 +175,7 @@ void wrap(int read_fd, int write_fd, int width){
                         charsOnLine = 0;
 
                     } else if ((numSpaces || numNewlines) && !firstSpace) {
+                        //same condition as top branch, just checks for first line space
                         if (charsOnLine + currentWord.used > width) {
                             write(write_fd, &newline, sizeof(char));
                             charsOnLine = 0;
@@ -184,13 +185,16 @@ void wrap(int read_fd, int write_fd, int width){
                         freeWord(&currentWord);
                         createWord(&currentWord, INIT_WORD_SIZE);
 
+                        //write a space
                         write(write_fd, &space, sizeof(char));
                         charsOnLine++;
                     }
-
+                    //reset vars
                     numSpaces = 0;
                     numNewlines = 0;
                     firstSpace = 0;
+
+                    //add character to vector
                     push_back(&currentWord, buffer[i]);
                     break;            
             }
@@ -198,7 +202,10 @@ void wrap(int read_fd, int write_fd, int width){
         //read into buffer again
         bytesRead = read(read_fd,buffer,BUFFER_SIZE);
     }
-    //temp fix for last word, just write it to the line
+    //working?? fix for last word, recheck condition and insert newline if needed
+    if (charsOnLine + currentWord.used > width) {
+        write(write_fd, &newline, sizeof(char));
+    }        
     write(write_fd, currentWord.word, currentWord.used);
     //end file with a newline
     write(write_fd, &newline, sizeof(char));
