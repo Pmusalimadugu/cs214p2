@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define BUFFER_SIZE 5
+#define BUFFER_SIZE 1
 #define INIT_WORD_SIZE 20
 
 int wrap(int read_fd, int write_fd, int width);

@@ -22,9 +22,10 @@ int main(int argc, char* argv[]) {
 int wrap(int read_fd, int write_fd, int width){
     //buffer to hold read calls
     char buffer[BUFFER_SIZE];
+    //basic character definitions
     char newline = '\n';
     char space = ' ';
-    char test = 'X';
+
 
     //increment consecutive spaces
     int numSpaces = 0;
@@ -65,7 +66,9 @@ int wrap(int read_fd, int write_fd, int width){
                         write(write_fd, &newline, sizeof(char));
                         write(write_fd, &newline, sizeof(char));
 
-                    } else if ((numSpaces || numNewlines) && charsOnLine) {
+                        charsOnLine = 0;
+
+                    } else if ((numSpaces || numNewlines)) {
                         if (charsOnLine + currentWord.used > width) {
                             write(write_fd, &newline, sizeof(char));
                             charsOnLine = 0;
@@ -75,13 +78,13 @@ int wrap(int read_fd, int write_fd, int width){
                         createWord(&currentWord, INIT_WORD_SIZE);
 
                         write(write_fd, &space, sizeof(char));
+                        charsOnLine++;
                     }
 
                     numSpaces = 0;
                     numNewlines = 0;
 
                     push_back(&currentWord, buffer[i]);
-                    charsOnLine++;
                     break;            
             }
         }
@@ -91,6 +94,9 @@ int wrap(int read_fd, int write_fd, int width){
 
     write(write_fd, currentWord.word, currentWord.used);
     write(write_fd, &newline, sizeof(char));
+
+
+    freeWord(&currentWord);
 
     return 10;
 }
