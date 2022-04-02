@@ -5,8 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 #define BUFFER_SIZE 1
 #define INIT_WORD_SIZE 20
 
-int wrap(int read_fd, int write_fd, int width);
+
+void wrap(int read_fd, int write_fd, int width);

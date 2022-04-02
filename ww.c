@@ -9,17 +9,83 @@ int main(int argc, char* argv[]) {
     if (argc == 2) {
         wrap(STDIN_FILENO, STDOUT_FILENO, width);
     } else if (argc == 3) {
-        int file = open(argv[2], O_RDONLY);
-        wrap(file, STDOUT_FILENO, width);
-		close(file);
+        //determine if path is file or dir
+        //provided struct for file path
+        struct stat sbuf;
+        //test for file found
+        int checkFileInDir = stat(argv[2], &sbuf);
+        //if not throw error
+        if (checkFileInDir){
+			perror("File was not found in directory!");
+        }
+
+        //if directory
+        if (S_ISDIR(sbuf.st_mode)) {
+
+            DIR* d = opendir(argv[2]);
+            struct dirent* pDirent;
+
+            pDirent = readdir(d);
+            char* filename;
+            char* wraptext = "wrap.";
+            char* newline = "\0";
+            while (pDirent != NULL) {
+                //do not wrap hidden or non default filetypes
+                if(pDirent->d_type == DT_REG) {
+                    int length = strlen(pDirent->d_name);
+                    filename = (char*)malloc(sizeof(char)*(5 + length));
+                    memcpy(filename, pDirent->d_name, 5);
+                    memcpy(filename+5, newline, 1);
+                    int c = strcmp(wraptext, filename);
+                    puts(filename);
+                    if((pDirent->d_name[0] != '.') && (c)) {
+                        int d = chdir(argv[2]);
+                        if(d) perror("Error cding!");
+                        int fd = open(pDirent->d_name, O_RDONLY);
+						if(fd == -1) perror("Error opening file!");
+                        memcpy(filename, wraptext, 5);
+                        memcpy(filename+5, pDirent->d_name, length);
+                        int dest = open(filename, O_RDWR | O_TRUNC | O_CREAT, 0644);
+                        if(dest == -1) perror("Error creating destination file");
+                        wrap(fd, dest, width);
+                        c = close(dest);
+                        if(c) perror("Error closing file!");
+                        d = chdir("..");
+                    }
+                   
+                    free(filename);
+                    
+                }
+                pDirent = readdir(d);
+            }
+
+            int c = closedir(d);
+			if(c == -1) perror("Error closing directory!");
+
+
+        //if file
+        } else if(S_ISREG(sbuf.st_mode)) {
+            //open file read-only
+            int fd = open(argv[2], O_RDONLY);
+            //throw error if file couldn't be opened
+            if(fd == -1) perror("Error opening file!");
+            //call wrap with fd and stdout
+            wrap(fd, STDOUT_FILENO, width);
+            //close file
+		    int c = close(fd);
+            //throw error if file could't be closed
+            if(c == -1) perror("Error closing file!");
+
+        } else {
+            perror("Unexpected input!");
+        }
+
     } else {
         return EXIT_FAILURE;
-        perror("test");
-        
     }
 }
 
-int wrap(int read_fd, int write_fd, int width){
+void wrap(int read_fd, int write_fd, int width){
     //buffer to hold read calls
     char buffer[BUFFER_SIZE];
     //basic character definitions
@@ -97,6 +163,4 @@ int wrap(int read_fd, int write_fd, int width){
 
 
     freeWord(&currentWord);
-
-    return 10;
 }
