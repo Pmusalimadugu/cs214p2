@@ -3,14 +3,7 @@
 
 /**
 * @brief 
-* adds character to word vector, similar to cpp std::vector push_back()
-* @param word
-* pointer to word array
-* @param used
-* size of current allocation
-* @param size
-* size of total allocation
-* @return void
+* maintains a word vector, similar to cpp std::vector
 */
 typedef struct {
   char *word;
